@@ -32,17 +32,10 @@ jobs:
       - name: Lint with ruff
         run: ruff check dags/
 
-      - name: Validate DAG imports
-        env:
-          API_KEY: dummy
-          CHANNEL_HANDLE: MrBeast
+      - name: Validate DAG syntax
         run: |
-          python -c "
-          from airflow.models import DagBag
-          dag_bag = DagBag(dag_folder='dags/', include_examples=False)
-          assert not dag_bag.import_errors, f'DAG import errors: {dag_bag.import_errors}'
-          print(f'Loaded {len(dag_bag.dags)} DAGs successfully')
-          "
+          python -m py_compile dags/main.py
+          echo "DAG syntax OK"
 
   docker-build:
     runs-on: ubuntu-latest

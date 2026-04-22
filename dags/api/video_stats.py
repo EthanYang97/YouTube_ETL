@@ -51,13 +51,13 @@ def _get_video_ids(api_key: str, playlist_id: str) -> list:
 
 
 @task
-def get_video_ids() -> list:
-    return _get_video_ids(API_KEY, CHANNEL_HANDLE)    
-    
+def get_video_ids(playlist_id: str) -> list:
+    return _get_video_ids(API_KEY, playlist_id)    
+
 
 
 # Get video details for each video ID
-def _extract_video_data(video_ids: list) -> list:
+def _extract_video_data(api_key: str, video_ids: list) -> list:
     video_data = []
 
     def batch_list(video_id_lst, batch_size):
@@ -66,7 +66,7 @@ def _extract_video_data(video_ids: list) -> list:
 
     for batch in batch_list(video_ids, MAX_RESULTS):
         ids = ",".join(batch)
-        url = f"https://youtube.googleapis.com/youtube/v3/videos?part=contentDetails&part=snippet&part=statistics&id={ids}&key={API_KEY}"
+        url = f"https://youtube.googleapis.com/youtube/v3/videos?part=contentDetails&part=snippet&part=statistics&id={ids}&key={api_key}"
             
         response = requests.get(url)
         response.raise_for_status()  # Check if the request was successful
@@ -82,17 +82,17 @@ def _extract_video_data(video_ids: list) -> list:
                 'viewCount': item['statistics'].get('viewCount', None),
                 'likeCount': item['statistics'].get('likeCount', None),
                 'commentCount': item['statistics'].get('commentCount', None)
-                }
+            }
             video_data.append(video_info)
 
     return video_data
 
 @task
 def extract_video_data(video_ids: list) -> list:
-    return _extract_video_data(video_ids)
+    return _extract_video_data(API_KEY, video_ids)
 
 
-def _save_to_json(data):
+def _save_to_json(data: list):
     file_path = f"./data/YT_data_{date.today()}.json"
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     playlist_id = _get_playlist_id(API_KEY, CHANNEL_HANDLE)
     print(f"Playlist ID: {playlist_id}")
     video_ids = _get_video_ids(API_KEY, playlist_id)
-    video_data = _extract_video_data(video_ids)
+    video_data = _extract_video_data(API_KEY, video_ids)
     _save_to_json(video_data)
 else:   
     print("This module is being imported, not run directly.")

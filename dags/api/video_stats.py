@@ -102,13 +102,10 @@ def save_to_json(data: list):
     return _save_to_json(data) 
 
 if __name__ == "__main__":
-    print("Fetching playlist ID...")
-    playlist_id = get_playlist_id()
+    playlist_id = _get_playlist_id(API_KEY, CHANNEL_HANDLE)
     print(f"Playlist ID: {playlist_id}")
-    video_ids = get_video_ids(playlist_id)
-    #print(f"Video IDs: {video_ids}")
-    #print(extract_video_data(video_ids))
-    video_data = extract_video_data(video_ids)
-    save_to_json(video_data)
+    video_ids = _get_video_ids(API_KEY, playlist_id)
+    video_data = _extract_video_data(video_ids)
+    _save_to_json(video_data)
 else:   
     print("This module is being imported, not run directly.")

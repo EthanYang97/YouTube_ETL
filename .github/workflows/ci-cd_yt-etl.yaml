@@ -22,13 +22,15 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install ruff black
+          pip install black==24.2.0
+
+      - name: Format check with black
+        run: |
+          black dags/
+          git diff --exit-code
 
       - name: Lint with ruff
         run: ruff check dags/
-
-      - name: Format check with black
-        run: black --check dags/
 
       - name: Validate DAG imports
         env:

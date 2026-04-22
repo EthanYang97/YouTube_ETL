@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  lint-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff black
+
+      - name: Lint with ruff
+        run: ruff check dags/
+
+      - name: Format check with black
+        run: black --check dags/
+
+      - name: Validate DAG imports
+        env:
+          API_KEY: dummy
+          CHANNEL_HANDLE: MrBeast
+        run: |
+          python -c "
+          from airflow.models import DagBag
+          dag_bag = DagBag(dag_folder='dags/', include_examples=False)
+          assert not dag_bag.import_errors, f'DAG import errors: {dag_bag.import_errors}'
+          print(f'Loaded {len(dag_bag.dags)} DAGs successfully')
+          "
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t yt-etl:ci .
+
+  publish-image:
+    runs-on: ubuntu-latest
+    needs: [lint-and-validate, docker-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PAT }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ vars.DOCKERHUB_NAMESPACE }}/${{ vars.DOCKERHUB_REPOSITORY }}:latest
+            ${{ vars.DOCKERHUB_NAMESPACE }}/${{ vars.DOCKERHUB_REPOSITORY }}:${{ github.sha }}

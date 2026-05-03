@@ -1,13 +1,17 @@
-from Projects.YouTube_ETL.dags.datawarehouse.data_utils import (
+from datawarehouse.data_utils import (
     get_conn_cursor,
     close_conn_cursor,
     create_schema,
     create_table,
     get_video_ids,
 )
-from Projects.YouTube_ETL.dags.datawarehouse.data_loading import load_data
-from Projects.YouTube_ETL.dags.datawarehouse.data_modification import insert_rows, update_rows, delete_rows
-from Projects.YouTube_ETL.dags.datawarehouse.data_transformation import transform_data
+from datawarehouse.data_loading import load_data
+from datawarehouse.data_modification import (
+    insert_rows,
+    update_rows,
+    delete_rows,
+)
+from datawarehouse.data_transformation import transform_data
 
 import logging
 from airflow.decorators import task

@@ -3,15 +3,15 @@ import pendulum
 from datetime import datetime, timedelta
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
-from api.video_stats import (
+from Projects.YouTube_ETL.dags.api.video_stats import (
     get_playlist_id,
     get_video_ids,
     extract_video_data,
     save_to_json,
 )
 
-from datawarehouse.dwh import staging_table, core_table
-from dataquality.soda import yt_elt_data_quality
+from Projects.YouTube_ETL.dags.datawarehouse.dwh import staging_table, core_table
+from Projects.YouTube_ETL.dags.dataquality.soda import yt_elt_data_quality
 
 # Define the local timezone
 local_tz = pendulum.timezone("America/New_York")
